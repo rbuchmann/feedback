@@ -22,7 +22,7 @@
     res))
 
 (r/defremote watch-feedbacks []
-  @(future 
+  @(future
      (while (empty? @feedbacks)
        (Thread/sleep 500))
      (clear-and-return)))

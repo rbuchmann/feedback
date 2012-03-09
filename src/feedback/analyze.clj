@@ -1,7 +1,7 @@
 (ns feedback.analyze
   (:use [feedback.trace :only [with-trace]]))
 
-(def ^:dynamic *expanders* {})
+(def ^:dynamic *expanders* [])
 (def ^:dynamic *form-id* nil)
 
 (defmacro with-expanders [exps & body]
@@ -12,28 +12,31 @@
   `(binding [*form-id* ~id]
      ~@body))
 
-(defn expand [form]
-  #_(prn "expand" form *form-id* (keys *expanders*))
-  (if-let [expander (*expanders* (first form))]
-    (do (set! *form-id* (inc *form-id*))
-        #_(prn "set form-id to" *form-id*)
-        (apply expander (rest form)))
-    ::no-expander))
+(defn find-expander [form]
+  (some #(% form) *expanders*))
+
+(defn expand [expander]
+  #_(prn "expand" *form-id*)
+  (set! *form-id* (inc *form-id*))
+  (expander))
 
 (defn dont-expand? [form]
   (or (not (seq? form))
       (= 'quote (first form))))
 
+(defn call-macroexpand [form]
+  (let [res (macroexpand-1 form)]
+    (when-not (= res form)
+      res)))
+
 (defn transform [form]
-  #_(prn "trans" form)
+  #_(prn "trans" form *form-id* *expanders*)
   (if (dont-expand? form)
     form
-    (let [expansion       (expand form)
-          expanded?       (not= expansion ::no-expander)
-          macro-expansion (macroexpand-1 form)
-          macro-expanded? (not= form macro-expansion)]
-      (cond expanded?       expansion
-            macro-expanded? (transform macro-expansion)
+    (let [expander        (find-expander form)
+          macro-expansion (call-macroexpand form)]
+      (cond expander        (expand expander)
+            macro-expansion (transform macro-expansion)
             :else           (doall (map transform form))))))
 
 (defn analyze [form]

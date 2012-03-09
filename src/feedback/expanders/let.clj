@@ -1,13 +1,14 @@
 (ns feedback.expanders.let
   (:use [feedback.analyze :only [transform *form-id*]]
+        [feedback.expander :only [defexpander ungenify]]
         [feedback.trace :only [protocol]]))
 
-(defn dbg-let [bindings & body]
+(defexpander dbg-let ['let* bindings & body]
   (let [transform-binding (fn [bind-id [var-sym value]]
                             [var-sym
                              `(protocol :let         ~*form-id*
                                         :internal-id ~bind-id
-                                        :var         '~var-sym
+                                        :var         '~(ungenify var-sym)
                                         :value       ~(transform value))])
         new-bindings (->> bindings
                           (partition 2)
@@ -21,4 +22,4 @@
     ret))
 
 (def let-expanders
-  {'let* dbg-let})
+  [dbg-let])
