@@ -1,5 +1,6 @@
 (ns feedback.test.core
-  (:use [feedback.core]
+  (:require [feedback.analyze :as a])
+  (:use [feedback.core :reload-all true]
         [clojure.test]
         [midje.sweet]))
 
@@ -9,4 +10,4 @@
   (facts
     (feedback test-fn) => ...analyzed...
     (provided
-      (analyze-code '(defn test-fn [x])) => ...analyzed...)))
+      (a/analyze '(defn test-fn [x])) => ...analyzed...)))

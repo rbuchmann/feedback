@@ -1,8 +1,12 @@
 /pom.xml
 *jar
 /lib
+/crossover
+/resources/public/js
 /classes
 /native
-/.lein-failures
 /checkouts
+/.lein-failures
 /.lein-deps-sum
+/.lein-plugins
+/.lein-cljsbuild*
