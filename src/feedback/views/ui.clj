@@ -7,7 +7,7 @@
    [:head
     [:meta {:charset "UTF-8"}]
     [:title "Feedback"]
-    #_(include-css "/css/reset.css")
+    (include-css "/css/panel.css")
     (javascript-tag "var CLOSURE_NO_DEPS = true;")
     (include-js "/js/feedback.js")]
    [:body
