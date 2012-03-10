@@ -1,8 +1,14 @@
 (ns feedback.core
   (:require [clojure.java.io      :as io])
   (:use     [clojure.contrib.core :only (-?>)]
-            [feedback.analyze     :only [analyze]])
+            [feedback.analyze     :only (analyze-and-eval with-expanders)]
+            [feedback.trace       :only (with-trace)])
   (:import (java.io LineNumberReader InputStreamReader PushbackReader)))
+
+(def stored-fns (atom []))
+
+(defn make-feedback [sym args]
+  {:name sym :args args})
 
 (defn source-fn
   "Stolen from clojure.repl.source"
@@ -21,10 +27,21 @@
                                i)))]
           (read (PushbackReader. pbr)))))))
 
-(defn feedback-fn [v]
-  (when v
-    (when-let [code (source-fn v)]
-      (analyze code))))
+(defn feedback-fn [v args]
+  (-?> v
+       (source-fn)
+       (analyze-and-eval)
+       (apply args)))
 
-(defmacro feedback [f]
-  `(feedback-fn ~(ns-resolve *ns* f)))
+(defmacro feedback [f & args]
+  `(swap! stored-fns
+          conj
+          (make-feedback ~f ~(vec args))))
+
+(defn run []
+  (with-expanders feedback.expanders.let/let-expanders
+    (doseq [f @stored-fns]
+      (with-trace
+        (feedback-fn (resolve (:name f)) (:args f)))))
+  stored-fns)
+

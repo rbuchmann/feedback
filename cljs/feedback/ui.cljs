@@ -34,6 +34,4 @@
 
 (defn ^:export init []
   (loop []
-    (log "bla")
-    (update-state)
-    (log "foo")))
+    (update-state)))

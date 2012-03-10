@@ -43,6 +43,4 @@
   (with-form-id -1
     (transform form)))
 
-(defn analyze-and-eval [form]
-  (with-trace
-    (eval (analyze form))))
+(def analyze-and-eval (comp eval analyze))
