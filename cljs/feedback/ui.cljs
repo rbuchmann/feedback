@@ -16,11 +16,10 @@
   (.log js/console (apply s objs)))
 
 (defn decorate []
-  (let [node (gdom/getNode "feedbacks")]
-    (.decorate rp dom)))
+  (let [node (gdom/$ "feedbacks")]
+    (.decorate rp node)))
 
 (defn build-dom [feedbacks]
-  (log "build")
   [:div#feedbacks
    (let [trace (first feedbacks)]
      (for [iteration (partition-by :iteration trace)]
