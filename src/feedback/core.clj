@@ -45,3 +45,9 @@
         (feedback-fn (resolve (:name f)) (:args f)))))
   stored-fns)
 
+(defn test-fn [x]
+  (let [a (inc x)
+        b (inc a)]
+    (if (<= b 10)
+      (recur b)
+      b)))

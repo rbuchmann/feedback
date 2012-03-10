@@ -1,8 +1,11 @@
 (ns feedback.ui
-  (:require [goog.dom      :as gdom]
-            [crate.core    :as crate]
-            [fetch.remotes :as remotes])
-  (:require-macros [fetch.macros :as fm]))
+  (:require [goog.dom             :as gdom]
+            [crate.core           :as crate]
+            [fetch.remotes        :as remotes]
+            [goog.ui.RoundedPanel :as panel])
+  (:require-macros [fetch.macros  :as fm]))
+
+(def rp (goog.ui.RoundedPanel/create 5 1 1))
 
 (defn s
   "Convert objects to a readable string, separarated by a space."
@@ -12,9 +15,13 @@
 (defn log [& objs]
   (.log js/console (apply s objs)))
 
+(defn decorate []
+  (let [node (gdom/getNode "feedbacks")]
+    (.decorate rp dom)))
+
 (defn build-dom [feedbacks]
+  (log "build")
   [:div#feedbacks
-   [:h1 (str "Feedbacks:")]
    (let [trace (first feedbacks)]
      (for [iteration (partition-by :iteration trace)]
        [:div {:style "display:inline-block"}
@@ -30,6 +37,7 @@
                       crate/html)]
       (gdom/removeChildren wrapper)
       (gdom/appendChild wrapper child)
+      (decorate)
       (update-state))))
 
 (defn ^:export init []
