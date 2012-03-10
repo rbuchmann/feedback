@@ -1,8 +1,36 @@
 (ns feedback.analyze
-  (:use [feedback.trace :only [with-trace]]))
+  (:use [clojure.walk :only [walk]]
+        [feedback.trace :only [with-trace]]))
 
 (def ^:dynamic *expanders* [])
 (def ^:dynamic *form-id* nil)
+
+(defn add-path [path form]
+  (if (instance? clojure.lang.IMeta form)
+    (with-meta form {::path path})
+    form))
+
+(defn get-path [form]
+  (::path (meta form)))
+
+(defn map-entry? [x]
+  (instance? clojure.lang.IMapEntry x))
+
+(defn rec-add-path [path form]
+  (let [res (if (coll? form)
+              (let [res-seq (map-indexed (fn [i f]
+                                           (rec-add-path (conj path i)
+                                                         f))
+                                         form)]
+                (cond (list? form)      (apply list res-seq)
+                      (map-entry? form) (vec res-seq)
+                      (seq? form)       (doall res-seq)
+                      :else             (into (empty form) res-seq)))
+              form)]
+    (add-path path res)))
+
+(defn with-path [form]
+  (rec-add-path [] form))
 
 (defmacro with-expanders [exps & body]
   `(binding [*expanders* ~exps]
