@@ -1,19 +1,19 @@
 (ns feedback.expanders.funcall
-  (:use [feedback.analyze :only [transform]]
-        [feedback.expander :only [expander]]
-        [feedback.trace :only [log]]))
+  (:use [feedback.analyze :only [get-path transform]]
+        [feedback.expander :only [expander call?]]
+        [feedback.trace :only [trace]]))
 
-(defn trace [[op & args] :as form]
-  (let [res `res#
-        argsyms (vec (map (fn [_]
-                            (gensym "arg"))
-                          args))]
-    `(let [~argsyms [~@(map transform args)]
-           ~res (~op ~@argsyms)]
-       ~(log-call :trace  form
-                  :args   argsyms
-                  :result res)
-       ~res)))
+(defn dbg-call [[op & args :as form]]
+  (let [argsyms (vec (for [_ args]
+                       (gensym "arg")))]
+    `(let [~argsyms [~@(map transform args)]]
+       ~(trace :call `(~op ~@argsyms)
+               :source `'~form
+               :path (get-path form)
+               :args argsyms))))
 
 (def arith-expanders
-  [(expander #{`+ `- `* `/} trace)])
+  [(expander (->> `[+ - * /]
+                  (map call?)
+                  (apply some-fn))
+             dbg-call)])

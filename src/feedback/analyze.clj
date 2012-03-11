@@ -1,6 +1,5 @@
 (ns feedback.analyze
-  (:require [clojure.walk :as cljwalk])
-  (:use [feedback.expander :only [ignorer]]))
+  (:require [clojure.walk :as cljwalk]))
 
 (defn with-meta*
   "Like with-meta, but doesn't fail on non IMeta objects"
@@ -16,11 +15,9 @@
     (with-meta* res (meta form))))
 
 (defn get-path [form]
-  (-> form
-      meta
-      ::path
-      reverse
-      vec))
+  (let [p (::path (meta form) :not-found)]
+    (when-not (= p :not-found)
+      (vec (reverse p)))))
 
 (def ^:dynamic *path* nil)
 
@@ -55,9 +52,15 @@
   (binding [*path* nil]
     (rec-add-path form)))
 
-(declare macro-expander)
+(declare transform)
 
-(def ^:dynamic *expanders* (list macro-expander))
+(defn clj-macroexpand [form]
+  (let [res (macroexpand-1 form)]
+    (when-not (= res form)
+      (fn []
+        (transform res)))))
+
+(def ^:dynamic *expanders* (list clj-macroexpand))
 
 (defmacro with-expanders [exps & body]
   `(binding [*expanders* (concat ~exps *expanders*)]
@@ -68,21 +71,18 @@
                                  *expanders*)]
      ~@body))
 
+(defn expand? [form]
+  (not (and (seq? form)
+            (= 'quote (first form)))))
+
 (defn find-expander [form]
-  (when-not (and (list? form)
-                 (= 'quote (first form)))
+  (when (expand? form)
     (some #(% form) *expanders*)))
 
 (defn transform [form]
   (if-let [exp (find-expander form)]
     (exp)
     (walk transform identity form)))
-
-(defn macro-expander [form]
-  (let [res (macroexpand-1 form)]
-    (when-not (= res form)
-      (fn []
-        (transform res)))))
 
 (def analyze (comp transform with-path))
 

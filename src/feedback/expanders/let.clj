@@ -3,7 +3,7 @@
         [feedback.expander :only [expander call?]]
         [feedback.trace :only [log-call]]))
 
-(defn dbg-let [let-sym bindings & body]
+(defn dbg-let [[let-sym bindings & body]]
   (let [transform-binding (fn [[var-sym value]]
                             [var-sym (transform value)
                              '_      (log-call :let var-sym

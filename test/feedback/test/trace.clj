@@ -3,7 +3,30 @@
         [clojure.test]
         [midje.sweet]))
 
-(deftest protocol-test
+(deftest path-order-test
+  (facts
+   (paths-in-eval-order? [0] [])
+   => truthy
+   (paths-in-eval-order? [] [])
+   => falsey
+   (paths-in-eval-order? [] [0])
+   => falsey
+   (paths-in-eval-order? [0] [0])
+   => falsey
+   (paths-in-eval-order? [0] [1])
+   => truthy
+   (paths-in-eval-order? [1] [0])
+   => falsey
+   (paths-in-eval-order? [0 1] [0])
+   => truthy
+   (paths-in-eval-order? [0] [0 1])
+   => falsey
+   (paths-in-eval-order? [0] [1 0])
+   => truthy
+   (paths-in-eval-order? [0 2 1 0] [0 2 2 1 0])
+   => truthy))
+
+#_(deftest protocol-test
   (against-background [(before :facts (clear-and-return))]
     (fact
      (with-trace

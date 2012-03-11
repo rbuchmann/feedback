@@ -1,7 +1,7 @@
 (ns feedback.trace
   (:require [clojure.string     :as str]
             [noir.fetch.remotes :as r])
-  (:use [feedback.analyze :only [get-path]]))
+  (:use [feedback.analyze :only [get-path analyze-and-eval]]))
 
 (def feedbacks (atom []))
 
@@ -11,7 +11,11 @@
   `(binding [*trace* (atom [])]
      (let [res# (do ~@forms)]
        (swap! feedbacks conj @*trace*)
-       res#)))
+       {:result res#
+        :trace  @*trace*})))
+
+(defn run-traced [form]
+  (with-trace (analyze-and-eval form)))
 
 (defn trace! [iteration]
   (swap! *trace* conj iteration))
@@ -28,18 +32,23 @@
        (Thread/sleep 500))
      (clear-and-return)))
 
-(defn paths-in-call-order? [[x & xs]
-                            [y & ys]]
-  (or (< x y)
-      (when (= x y)
-        (or (not xs)
-            (when ys
-              (recur xs ys))))))
+(defn paths-in-eval-order?
+  "Is the first node called before the second under eager evaluation,
+   meaning inside-first?"
+  [[x & xs] [y & ys]]
+  (when x
+    (let [res (compare x y)]
+      (or (not y)
+          (neg? res)
+          (and (zero? res)
+               (or xs ys)
+               (or (not ys)
+                   (recur xs ys)))))))
 
-(defn- already-seen?
+(defn- forms-in-eval-order?
   "Checks if a form has been seen before in the current trace"
-  [{:path last} {:path current}]
-  ((paths-in-call-order? last current)))
+  [{last :path} {current :path}]
+  (paths-in-eval-order? last current))
 
 (defn- iteration
   "Compute an iteration step from a form description
@@ -48,7 +57,7 @@
   (assoc form
     :iteration
     (if previous
-      (if-not (already-seen? previous form)
+      (if (forms-in-eval-order? previous form)
         (:iteration previous)
         (inc (:iteration previous)))
       0)))
@@ -63,7 +72,16 @@
   nil)
 
 (defn log-call [type form & {:as argmap}]
-  `(protocol ~(merge {:type type
-                      :path (get-path form)
-                      :source `'~form}
-                     argmap)))
+  `(when *trace*
+     (protocol ~(merge {:type type
+                        :path (get-path form)
+                        :source `'~form}
+                       argmap))))
+
+(defn trace [type form & keyargs]
+  (let [res `res#]
+    `(let [~res ~form]
+       ~(apply log-call type form
+               :result res
+               keyargs)
+       ~res)))

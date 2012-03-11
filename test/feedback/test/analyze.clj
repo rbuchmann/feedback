@@ -3,8 +3,6 @@
         [clojure.test]
         [midje.sweet]))
 
-(def pk :feedback.analyze/path)
-
 (deftest test-with-path
   (facts
    (with-path 5) => 5
