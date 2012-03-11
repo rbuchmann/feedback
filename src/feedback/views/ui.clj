@@ -11,6 +11,7 @@
     (javascript-tag "var CLOSURE_NO_DEPS = true;")
     (include-js "/js/feedback.js")]
    [:body
+    [:div#header]
     [:div#wrapper]
     (javascript-tag "feedback.ui.init()")]))
 

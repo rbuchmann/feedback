@@ -42,6 +42,17 @@
       (decorate)
       (update-state))))
 
+(defn add-header []
+  (gdom/appendChild
+    (gdom/$ "header")
+    (crate/html
+     [:embed {:src    "images/parakeet.svg"
+              :type   "image/svg+xml"
+              :width  110
+              :height 60
+              :style  "position:absolute;right:0px;margin:15px"}])))
+
 (defn ^:export init []
   (loop []
+    (add-header)
     (update-state)))
