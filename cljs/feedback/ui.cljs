@@ -1,7 +1,11 @@
 (ns feedback.ui
   (:require [goog.dom             :as gdom]
+            [goog.events          :as event]
             [crate.core           :as crate]
             [fetch.remotes        :as remotes]
+            [feedback.selector          :as selector]
+            [goog.ui.ComboBox     :as combo]
+            [goog.ui.ComboBoxItem :as combo-item]
             [goog.ui.RoundedPanel :as panel])
   (:require-macros [fetch.macros  :as fm]))
 
@@ -30,13 +34,11 @@
             [:li (str (s var) ": " (s value))])]]))]])
 
 (defn update-state []
-  (log "update")
   (fm/letrem [feedbacks (watch-feedbacks)]
     (let [wrapper (gdom/$ "wrapper")
           child   (-> feedbacks
                       build-dom
                       crate/html)]
-      (log "updated")
       (gdom/removeChildren wrapper)
       (gdom/appendChild wrapper child)
       (decorate)
@@ -55,4 +57,6 @@
 (defn ^:export init []
   (loop []
     (add-header)
-    (update-state)))
+    (selector/add)
+;    (update-state)
+    ))

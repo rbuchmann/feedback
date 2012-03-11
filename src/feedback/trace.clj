@@ -1,6 +1,5 @@
 (ns feedback.trace
-  (:require [clojure.string     :as str]
-            [noir.fetch.remotes :as r]))
+  (:require [clojure.string :as str]))
 
 (def feedbacks (atom []))
 
@@ -20,12 +19,6 @@
     (swap! feedbacks
            (constantly []))
     res))
-
-(r/defremote watch-feedbacks []
-  @(future
-     (while (empty? @feedbacks)
-       (Thread/sleep 500))
-     (clear-and-return)))
 
 (defn form [type id args]
   (assoc args
