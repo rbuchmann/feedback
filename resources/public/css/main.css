@@ -1,3 +1,18 @@
+html body {
+    background: #5C5151;
+    overflow:hidden;
+}
+
 #header {
     height:100px;
 }
+
+.header-bottom {
+  position: relative;
+  top: 85px;
+  margin-left:  20px;
+  margin-right: 20px;
+  border-top:    1px solid #BABABA;
+  border-bottom: 1px solid #6B696A;
+}
+

@@ -8,9 +8,11 @@
   (:require-macros [fetch.macros  :as fm]))
 
 (defn fn-selector []
-  (->> [:div#fns {:style "width:370px"}
-        [:div#nsbox {:style "float:left;width:180px"}]
-        [:div#fnbox {:style "float:right;width:180px"}]]
+  (->> [:div#fns {:style "width:500px"}
+        [:div {:style "position:absolute; left:40px;"}
+          [:div#nsbox]]
+        [:div {:style "position:absolute; left:280px;"}
+          [:div#fnbox]]]
       (crate/html)
       (gdom/appendChild (gdom/$ "main"))))
 

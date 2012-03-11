@@ -45,14 +45,17 @@
       (update-state))))
 
 (defn add-header []
-  (gdom/appendChild
-    (gdom/$ "header")
-    (crate/html
-     [:embed {:src    "images/parakeet.svg"
-              :type   "image/svg+xml"
-              :width  110
-              :height 60
-              :style  "position:absolute;right:0px;margin:15px"}])))
+  (let [header (gdom/$ "header")]
+    (gdom/appendChild
+     header
+     (crate/html
+      [:div {:style "width:100%"}
+       [:embed {:src    "images/parakeet.svg"
+                :type   "image/svg+xml"
+                :width  110
+                :height 60
+                :style  "float:right;margin:15px"}]
+       [:div {:class "header-bottom"}]]))))
 
 (defn ^:export init []
   (loop []
