@@ -1,17 +1,19 @@
 (ns feedback.expanders.funcall
-  (:use [feedback.analyze :only [transform *form-id*]]
-        [feedback.trace :only [protocol]]))
+  (:use [feedback.analyze :only [transform]]
+        [feedback.expander :only [expander]]
+        [feedback.trace :only [log]]))
 
-(defn dbg-funcall [fsym]
-  (fn [& args]
-    (let [form `(~fsym ~@(map transform args))]
-      #_(prn "form" (str "<" form ">"))
-      `(protocol :funcall ~*form-id*
-                 :call '(~fsym ~@args)
-                 :value ~form))))
+(defn trace [[op & args] :as form]
+  (let [res `res#
+        argsyms (vec (map (fn [_]
+                            (gensym "arg"))
+                          args))]
+    `(let [~argsyms [~@(map transform args)]
+           ~res (~op ~@argsyms)]
+       ~(log-call :trace  form
+                  :args   argsyms
+                  :result res)
+       ~res)))
 
 (def arith-expanders
-  {'+ (dbg-funcall '+)
-   '- (dbg-funcall '-)
-   '* (dbg-funcall '*)
-   '/ (dbg-funcall '/)})
+  [(expander #{`+ `- `* `/} trace)])

@@ -1,74 +1,89 @@
 (ns feedback.analyze
-  (:use [clojure.walk :only [walk]]
-        [feedback.trace :only [with-trace]]))
+  (:require [clojure.walk :as cljwalk])
+  (:use [feedback.expander :only [ignorer]]))
 
-(def ^:dynamic *expanders* [])
-(def ^:dynamic *form-id* nil)
+(defn with-meta*
+  "Like with-meta, but doesn't fail on non IMeta objects"
+  [obj m]
+  (if (instance? clojure.lang.IMeta obj)
+    (with-meta obj m)
+    obj))
 
-(defn add-path [path form]
-  (if (instance? clojure.lang.IMeta form)
-    (with-meta form {::path path})
-    form))
+(defn walk
+  "Like clojure.walk/walk, but preserves metadata"
+  [inner outer form]
+  (let [res (cljwalk/walk inner outer form)]
+    (with-meta* res (meta form))))
 
 (defn get-path [form]
-  (::path (meta form)))
+  (-> form
+      meta
+      ::path
+      reverse
+      vec))
 
-(defn map-entry? [x]
-  (instance? clojure.lang.IMapEntry x))
+(def ^:dynamic *path* nil)
 
-(defn rec-add-path [path form]
-  (let [res (if (coll? form)
-              (let [res-seq (map-indexed (fn [i f]
-                                           (rec-add-path (conj path i)
-                                                         f))
-                                         form)]
-                (cond (list? form)      (apply list res-seq)
-                      (map-entry? form) (vec res-seq)
-                      (seq? form)       (doall res-seq)
-                      :else             (into (empty form) res-seq)))
-              form)]
-    (add-path path res)))
+(defmacro alter!
+  "updates a dynamic variable"
+  [var f & args]
+  `(set! ~var (~f ~var ~@args)))
+
+(defn push-path []
+  (alter! *path* conj 0))
+
+(defn pop-path []
+  (alter! *path* next))
+
+(defn inc-path []
+  (alter! *path* (fn [[x & xs]]
+                   (when x
+                     (cons (inc x)
+                           xs)))))
+
+(defn rec-add-path [form]
+  (let [form (with-meta* form {::path *path*})]
+    (push-path)
+    (walk rec-add-path
+          (fn [frm]
+            (pop-path)
+            (inc-path)
+            frm)
+          form)))
 
 (defn with-path [form]
-  (rec-add-path [] form))
+  (binding [*path* nil]
+    (rec-add-path form)))
+
+(declare macro-expander)
+
+(def ^:dynamic *expanders* (list (ignorer (complement coll?))
+                                 (ignorer #(= 'quote (first %)))
+                                 macro-expander))
 
 (defmacro with-expanders [exps & body]
-  `(binding [*expanders* ~exps]
+  `(binding [*expanders* (concat ~exps *expanders*)]
      ~@body))
 
-(defmacro with-form-id [id & body]
-  `(binding [*form-id* ~id]
+(defmacro without-expanders [exps & body]
+  `(binding [*expanders* (remove (set exps)
+                                 *expanders*)]
      ~@body))
 
 (defn find-expander [form]
   (some #(% form) *expanders*))
 
-(defn expand [expander]
-  #_(prn "expand" *form-id*)
-  (set! *form-id* (inc *form-id*))
-  (expander))
+(defn transform [form]
+  (if-let [exp (find-expander form)]
+    (exp)
+    (walk transform identity form)))
 
-(defn dont-expand? [form]
-  (or (not (seq? form))
-      (= 'quote (first form))))
-
-(defn call-macroexpand [form]
+(defn macro-expander [form]
   (let [res (macroexpand-1 form)]
     (when-not (= res form)
-      res)))
+      (fn []
+        (transform res)))))
 
-(defn transform [form]
-  #_(prn "trans" form *form-id* *expanders*)
-  (if (dont-expand? form)
-    form
-    (let [expander        (find-expander form)
-          macro-expansion (call-macroexpand form)]
-      (cond expander        (expand expander)
-            macro-expansion (transform macro-expansion)
-            :else           (doall (map transform form))))))
-
-(defn analyze [form]
-  (with-form-id -1
-    (transform form)))
+(def analyze (comp transform with-path))
 
 (def analyze-and-eval (comp eval analyze))

@@ -1,6 +1,7 @@
 (ns feedback.trace
   (:require [clojure.string     :as str]
-            [noir.fetch.remotes :as r]))
+            [noir.fetch.remotes :as r])
+  (:use [feedback.analyze :only [get-path]]))
 
 (def feedbacks (atom []))
 
@@ -27,19 +28,18 @@
        (Thread/sleep 500))
      (clear-and-return)))
 
-(defn form [type id args]
-  (assoc args
-    :type    type
-    :form-id id))
-
-(def make-binding (juxt :form-id :internal-id))
+(defn paths-in-call-order? [[x & xs]
+                            [y & ys]]
+  (or (< x y)
+      (when (= x y)
+        (or (not xs)
+            (when ys
+              (recur xs ys))))))
 
 (defn- already-seen?
   "Checks if a form has been seen before in the current trace"
-  [last current]
-  (> (compare (make-binding last)
-              (make-binding current))
-     0))
+  [{:path last} {:path current}]
+  ((paths-in-call-order? last current)))
 
 (defn- iteration
   "Compute an iteration step from a form description
@@ -56,9 +56,14 @@
 (defn protocol
   "Write the values of a binding form into the currently
    bound trace"
-  [type form-id & {:keys [value] :as args}]
-  (let [trace-form     (form type form-id args)
-        last-iteration (peek @*trace*)]
+  [form]
+  (let [last-iteration (peek @*trace*)]
     (trace!
-      (iteration trace-form last-iteration)))
-  value)
+     (iteration form last-iteration)))
+  nil)
+
+(defn log-call [type form & {:as argmap}]
+  `(protocol ~(merge {:type type
+                      :path (get-path form)
+                      :source `'~form}
+                     argmap)))

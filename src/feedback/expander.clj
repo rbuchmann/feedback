@@ -1,12 +1,18 @@
 (ns feedback.expander
-  (:require [clojure.string :as str])
-  (:use [clojure.core.match :only [match]]))
+  (:require [clojure.string :as str]))
 
-(defmacro defexpander [name pattern & body]
-  (let [expander `(fn []
-                    ~@body)]
-    `(defn ~name [form#]
-       (match form# (~pattern :seq) ~expander))))
+(defn expander [guard expand]
+  (fn [form]
+    (when (guard form)
+      (fn [] (expand form)))))
+
+(defn ignorer [guard]
+  (expander guard identity))
+
+(defn call? [sym]
+  (fn [form]
+    (and (list? form)
+         (= sym (first form)))))
 
 (defn ungenify [sym]
   (-> (name sym)

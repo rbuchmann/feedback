@@ -1,7 +1,5 @@
 (ns feedback.test.analyze
-  (:use [feedback.trace :only [protocol]]
-        [feedback.analyze :reload true]
-        [feedback.expanders.let :reload true]
+  (:use [feedback.analyze :reload true]
         [clojure.test]
         [midje.sweet]))
 
@@ -15,9 +13,9 @@
    (with-path '[a b 3]) => '[a b 3]
    (with-path '{:a a}) => '{:a a}
    (with-path #{1 2 'c}) => #{1 2 'c}
-   (meta (with-path 'f)) => {pk []}
-   (meta (with-path '(foo))) => {pk []}
-   (meta (first (with-path '(foo)))) => {pk [0]}
-   (meta (second (with-path '(4 g)))) => {pk [1]}
-   (meta (first (second (with-path '(4 (a b)))))) => {pk [1 0]}
-   (meta (second (first (with-path {:a :b})))) => {pk [1 1]}))
+   (get-path (with-path 'f)) => []
+   (get-path (with-path '(foo))) => []
+   (get-path (first (with-path '(foo)))) => [0]
+   (get-path (second (with-path '(4 g)))) => [1]
+   (get-path (first (second (with-path '(4 (a b)))))) => [1 0]
+   (get-path (second (first (with-path {:a 'b})))) => [0 1]))
