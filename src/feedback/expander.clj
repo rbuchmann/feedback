@@ -6,9 +6,6 @@
     (when (guard form)
       (fn [] (expand form)))))
 
-(defn ignorer [guard]
-  (expander guard identity))
-
 (defn call? [sym]
   (fn [form]
     (and (list? form)

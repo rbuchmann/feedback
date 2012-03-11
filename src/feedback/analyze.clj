@@ -57,9 +57,7 @@
 
 (declare macro-expander)
 
-(def ^:dynamic *expanders* (list (ignorer (complement coll?))
-                                 (ignorer #(= 'quote (first %)))
-                                 macro-expander))
+(def ^:dynamic *expanders* (list macro-expander))
 
 (defmacro with-expanders [exps & body]
   `(binding [*expanders* (concat ~exps *expanders*)]
@@ -71,7 +69,9 @@
      ~@body))
 
 (defn find-expander [form]
-  (some #(% form) *expanders*))
+  (when-not (and (list? form)
+                 (= 'quote (first form)))
+    (some #(% form) *expanders*)))
 
 (defn transform [form]
   (if-let [exp (find-expander form)]
