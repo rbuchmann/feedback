@@ -38,7 +38,7 @@
 (defmacro feedback [f & args]
   `(swap! stored-fns
           conj
-          (make-feedback ~f ~(vec args))))
+          (make-feedback '~f ~(vec args))))
 
 (defn run []
   (with-expanders [dfn/defn-expander lt/let-expander]
