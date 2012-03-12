@@ -3,8 +3,7 @@
             [feedback.expanders.let  :as lt]
             [feedback.expanders.defn :as dfn])
   (:use     [clojure.contrib.core :only (-?>)]
-            [feedback.analyze     :only (analyze-and-eval transform with-expanders)]
-            [feedback.expander    :only (defexpander)]
+            [feedback.analyze     :only (analyze-and-eval with-expanders)]
             [feedback.trace       :only (with-trace)])
   (:import (java.io LineNumberReader InputStreamReader PushbackReader)))
 
@@ -40,9 +39,9 @@
   `(swap! stored-fns
           conj
           (make-feedback ~f ~(vec args))))
- 
+
 (defn run []
-  (with-expanders [dfn/defn->fn lt/dbg-let]
+  (with-expanders [dfn/defn-expander lt/let-expander]
     (doseq [f @stored-fns]
       (with-trace
         (feedback-fn (resolve (:name f)) (:args f)))))

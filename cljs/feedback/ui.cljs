@@ -30,8 +30,8 @@
       (for [iteration (partition-by :iteration trace)]
         [:div {:style "display:inline-block"}
          [:ul {:style "list-style-type:none"}
-          (for [{:keys [var value]} iteration]
-            [:li (str (s var) ": " (s value))])]]))]])
+          (for [{:keys [source result]} iteration]
+            [:li (str (s source) ": " (s result))])]]))]])
 
 (defn update-state []
   (fm/letrem [feedbacks (watch-feedbacks)]

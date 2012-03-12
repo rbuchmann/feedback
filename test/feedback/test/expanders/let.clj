@@ -1,46 +1,80 @@
 (ns feedback.test.expanders.let
-  (:use [feedback.trace :only [protocol]]
-        [feedback.analyze :reload true]
+  (:use [feedback.analyze :reload true]
         [feedback.expanders.let :reload true]
+        [feedback.trace :reload true]
         [clojure.test]
         [midje.sweet]))
 
 (deftest let-test
-  (with-expanders let-expanders
+  (with-expanders [let-expander]
     (facts
 
-     (analyze-and-eval '(let [x 1] x))
-     => 1
-     (provided (protocol :let 0, :internal-id 0, :var 'x, :value 1) => 1)
+     (run-traced '(let [x 1
+                        y (inc x)]
+                    y))
+     =>
+     {:result 2
+      :trace [{:iteration 0
+               :type :let
+               :path [1 0]
+               :source 'x
+               :result 1}
+              {:iteration 0
+               :type :let
+               :path [1 2]
+               :source 'y
+               :result 2}]}
 
-     (analyze-and-eval '((fn [x]
-                           (let [a x]
-                             x))
-                         5))
-     => 5
-     (provided
-      (protocol :let 0, :internal-id 0, :var 'a, :value 5) => 5)
+     (run-traced '((fn [x]
+                     (let [a x]
+                       (inc x)))
+                   5))
+     =>
+     {:result 6
+      :trace [{:iteration 0
+               :type :let
+               :path [0 2 1 0]
+               :source 'a
+               :result 5}]}
 
-     (analyze-and-eval '((fn [x]
-                           (let [a x]
-                             (let [b (+ a 1)]
-                               b)))
-                         3))
-     => 4
-     (provided
-      (protocol :let 0, :internal-id 0, :var 'a, :value 3) => 3
-      (protocol :let 1, :internal-id 0, :var 'b, :value 4) => 4)
+     (run-traced '((fn [x]
+                     (let [a x]
+                       (let [b (+ a 1)]
+                         b)))
+                   3))
+     =>
+     {:result 4
+      :trace [{:iteration 0
+               :type :let
+               :path [0 2 1 0]
+               :source 'a
+               :result 3}
+              {:iteration 0
+               :type :let
+               :path [0 2 2 1 0]
+               :source 'b
+               :result 4}]}
 
-     (analyze-and-eval '((fn [x]
-                           (let [a (inc x)]
-                             (if (<= a 5)
-                               (recur a)
-                               a)))
-                         1))
-     => 6
-     (provided
-      (protocol :let 0, :internal-id 0, :var 'a, :value 2) => 2
-      (protocol :let 0, :internal-id 0, :var 'a, :value 3) => 3
-      (protocol :let 0, :internal-id 0, :var 'a, :value 4) => 4
-      (protocol :let 0, :internal-id 0, :var 'a, :value 5) => 5
-      (protocol :let 0, :internal-id 0, :var 'a, :value 6) => 6))))
+     (run-traced '((fn [x]
+                     (let [a (inc x)]
+                       (if (<= a 5)
+                         (recur a)
+                         a)))
+                   3))
+     =>
+     {:result 6
+      :trace [{:iteration 0
+               :type :let
+               :path [0 2 1 0]
+               :source 'a
+               :result 4}
+              {:iteration 1
+               :type :let
+               :path [0 2 1 0]
+               :source 'a
+               :result 5}
+              {:iteration 2
+               :type :let
+               :path [0 2 1 0]
+               :source 'a
+               :result 6}]})))

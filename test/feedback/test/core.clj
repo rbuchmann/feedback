@@ -4,8 +4,6 @@
         [clojure.test]
         [midje.sweet]))
 
-(defn test-fn [x])
-
 (deftest feedback-test
   (facts
     (feedback test-fn) => ...analyzed...

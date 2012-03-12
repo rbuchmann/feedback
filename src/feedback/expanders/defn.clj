@@ -1,6 +1,7 @@
 (ns feedback.expanders.defn
   (:use [feedback.analyze  :only (transform)]
-        [feedback.expander :only (defexpander)]))
+        [feedback.expander :only (macro-expander)]))
 
-(defexpander defn->fn ['defn & rest]
-  `(fn ~@(transform rest)))
+(def defn-expander
+  (macro-expander defn [& rest]
+                  `(fn ~@rest)))
