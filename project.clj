@@ -6,7 +6,8 @@
                  [org.clojure/core.match "0.2.0-alpha9"]
                  [noir  "1.2.2"]
                  [fetch "0.1.0-alpha1"]
-                 [crate "0.1.0-alpha1"]]
+                 [crate "0.1.0-alpha1"]
+                 [clj-tagsoup "0.2.6"]]
   :dev-dependencies [[midje "1.3.2-SNAPSHOT"]]
   :cljsbuild
   {:crossovers [fetch.macros]

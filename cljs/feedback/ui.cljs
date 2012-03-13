@@ -17,13 +17,12 @@
 (defn log [& objs]
   (.log js/console (apply s objs)))
 
-(defn decorate []
+(defn decorate [node]
   (log "decorate")
-  (let [rp   (goog.ui.RoundedPanel/create 5 1 "#fedcba" "#abcdef" 15)
-        node (gdom/$ "feedbacks")]
+  (let [rp (goog.ui.RoundedPanel/create 5 1 "#d0d0d0" "#202020" 15)]
     (.decorate rp node)))
 
-(defn build-dom [feedbacks]
+(defn build-dom [code]
   [:div#feedbacks
    [:div {:class "goog-roundedpanel-content"}
     (let [trace (first feedbacks)]
@@ -44,6 +43,16 @@
       (decorate)
       (update-state))))
 
+(defn build-function-view [code]
+  (let [panel       (gdom/$ "code")
+        replacement (crate/html [:div#code {:class "code-panel"}])
+        code-node   (gdom/htmlToDocumentFragment code)]
+    (gdom/appendChild replacement code-node)
+    (decorate replacement)
+    (if panel
+      (gdom/replaceNode replacement panel)
+      (gdom/appendChild (gdom/$ "main") replacement))))
+
 (defn add-header []
   (let [header (gdom/$ "header")]
     (gdom/appendChild
@@ -60,6 +69,6 @@
 (defn ^:export init []
   (loop []
     (add-header)
-    (selector/add)
+    (selector/add build-function-view)
 ;    (update-state)
     ))

@@ -9,6 +9,7 @@
     [:title "Feedback"]
     (include-css "/css/main.css")
     (include-css "/css/panel.css")
+    (include-css "/css/code.css")
     (javascript-tag "var CLOSURE_NO_DEPS = true;")
     (include-js "/js/feedback.js")]
    [:body

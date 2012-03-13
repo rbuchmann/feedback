@@ -2,6 +2,7 @@
   (:require [noir.server :as server]
             [noir.fetch.remotes :as r]
             [feedback.core]
+            [feedback.remotes]
             [feedback.views.ui])
   (:gen-class))
 
@@ -9,6 +10,6 @@
 
 (server/add-middleware r/wrap-remotes)
 
-(defn -main []
+(defn start []
   (server/start 8080 {:mode :dev
                       :ns 'feedback}))
