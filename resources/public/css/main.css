@@ -1,6 +1,6 @@
 html body {
     background: #5C5151;
-    overflow:hidden;
+//    overflow:hidden;
 }
 
 #header {
@@ -16,3 +16,63 @@ html body {
   border-bottom: 1px solid #6B696A;
 }
 
+.clj {
+  display: inline-block;
+  margin: 2px;
+}
+
+.map-entry {
+  display: inline-block;
+}
+
+.map-key {
+  display: inline-block;
+}
+
+.map-value {
+  display: inline-block;
+}
+
+.map-separator {
+  display: inline-block;
+}
+
+.map-separator:before {
+  content: ", "
+}
+
+.nil:before {
+  content: "nil";
+}
+
+.list:before {
+  content: "(";
+}
+
+.list:after {
+  content: ")";
+}
+
+.vector:before {
+  content: "[";
+}
+
+.vector:after {
+  content: "]";
+}
+
+.map:before {
+  content: "{";
+}
+
+.map:after {
+  content: "}";
+}
+
+.set:before {
+  content: "#{";
+}
+
+.set:after {
+  content: "}";
+}

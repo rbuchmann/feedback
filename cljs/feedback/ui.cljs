@@ -3,7 +3,8 @@
             [goog.events          :as event]
             [crate.core           :as crate]
             [fetch.remotes        :as remotes]
-            [feedback.selector          :as selector]
+            [feedback.selector    :as selector]
+            [feedback.test.formatter :as ftest]
             [goog.ui.ComboBox     :as combo]
             [goog.ui.ComboBoxItem :as combo-item]
             [goog.ui.RoundedPanel :as panel])
@@ -58,7 +59,8 @@
        [:div {:class "header-bottom"}]]))))
 
 (defn ^:export init []
-  (loop []
+  (ftest/test-formatter)
+  #_(loop []
     (add-header)
     (selector/add)
 ;    (update-state)
