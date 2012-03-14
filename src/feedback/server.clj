@@ -1,7 +1,6 @@
 (ns feedback.server
   (:require [noir.server :as server]
             [noir.fetch.remotes :as r]
-            [feedback.core]
             [feedback.remotes]
             [feedback.views.ui])
   (:gen-class))

@@ -1,6 +1,7 @@
 (defproject feedback "1.0.0-SNAPSHOT"
   :description "FIXME: write description"
-  :plugins [[lein-cljsbuild "0.1.2"]]
+  :plugins [[lein-cljsbuild "0.1.2"]
+            [lein-swank "1.4.3"]]
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [org.clojure/core.match "0.2.0-alpha9"]

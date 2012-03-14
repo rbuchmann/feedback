@@ -1,7 +1,8 @@
 (ns feedback.core
   (:require [clojure.java.io         :as io]
             [feedback.expanders.let  :as lt]
-            [feedback.expanders.defn :as dfn])
+            [feedback.expanders.defn :as dfn]
+            [feedback.server         :as srv])
   (:use     [clojure.contrib.core :only (-?>)]
             [feedback.analyze     :only (analyze-and-eval with-expanders)]
             [feedback.trace       :only (with-trace)])
@@ -47,9 +48,5 @@
         (feedback-fn (resolve (:name f)) (:args f)))))
   stored-fns)
 
-(defn test-fn [x]
-  (let [a (inc x)
-        b (inc a)]
-    (if (<= b 10)
-      (recur b)
-      b)))
+(defn parakeet []
+  (srv/start))
