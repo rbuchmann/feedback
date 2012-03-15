@@ -3,10 +3,12 @@
         [feedback.expander :only [expander call?]]
         [feedback.trace :only [trace]]))
 
-(defn dbg-let [[let-sym bindings & body]]
+(def line (comp :line meta))
+
+(defn dbg-let [[let-sym bindings & body :as form]]
   (let [transform-binding (fn [[var-sym value]]
                             [var-sym value
-                             '_      (trace :let var-sym)])
+                             '_      (trace :let var-sym :line (line form))])
         new-bindings (->> bindings
                           (partition 2)
                           (map transform-binding)

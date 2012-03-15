@@ -69,6 +69,6 @@
                 (protocol ~(merge {:type type
                                    :path (get-path form)
                                    :source `'~form
-                                   :result form}
+                                   :result `(pr-str ~form)}
                                   argmap)))
     {:feedback.analyze/dont-expand true}))

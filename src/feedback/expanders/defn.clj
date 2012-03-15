@@ -3,5 +3,7 @@
         [feedback.expander :only (macro-expander)]))
 
 (def defn-expander
-  (macro-expander defn [& rest]
-                  `(fn ~@rest)))
+  (macro-expander defn [x y & rest]
+    (if (string? y)
+      `(fn ~@(cons x rest))
+      `(fn ~@(list* x y rest)))))

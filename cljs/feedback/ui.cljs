@@ -18,40 +18,54 @@
   (.log js/console (apply s objs)))
 
 (defn decorate [node]
-  (log "decorate")
   (let [rp (goog.ui.RoundedPanel/create 5 1 "#d0d0d0" "#202020" 15)]
     (.decorate rp node)))
 
-(defn build-dom [code]
+(defn build-dom [feedbacks]
   [:div#feedbacks
-   [:div {:class "goog-roundedpanel-content"}
+   [:div
     (let [trace (first feedbacks)]
       (for [iteration (partition-by :iteration trace)]
-        [:div {:style "display:inline-block"}
-         [:ul {:style "list-style-type:none"}
-          (for [{:keys [source result]} iteration]
-            [:li (str (s source) ": " (s result))])]]))]])
+        [:div {:class "highlight" :style "display:inline-block;font-family:monospace;"}
+         (for [line (partition-by :line iteration)]
+           [:div
+            [:ul {:style "list-style-type:none;padding:5px;"}
+             (for [{:keys [source result]} line]
+               [:li
+                [:span {:class "nv"} (s source)]
+                ":"
+                [:span {:class "mi"} (s result)]])]])]))]])
+
+(defn- position-trace [source trace]
+  (let [source-width (-> source .-style .-width)]
+    (set! (.-left trace) source-width)))
 
 (defn update-state []
   (fm/letrem [feedbacks (watch-feedbacks)]
-    (let [wrapper (gdom/$ "wrapper")
-          child   (-> feedbacks
-                      build-dom
-                      crate/html)]
-      (gdom/removeChildren wrapper)
-      (gdom/appendChild wrapper child)
-      (decorate)
+    (let [source (gdom/$ "source")
+          trace  (gdom/$ "trace")
+          child  (-> feedbacks
+                     build-dom
+                     crate/html)]
+      ;(position-trace source trace)
+      (gdom/removeChildren trace)
+      (gdom/appendChild trace child)
       (update-state))))
 
 (defn build-function-view [code]
   (let [panel       (gdom/$ "code")
         replacement (crate/html [:div#code {:class "code-panel"}])
+        source      (crate/html [:div#source])
+        trace       (crate/html [:div#trace])
         code-node   (gdom/htmlToDocumentFragment code)]
-    (gdom/appendChild replacement code-node)
+    (gdom/appendChild replacement source)
+    (gdom/appendChild replacement trace)
+    (gdom/appendChild source code-node)
     (decorate replacement)
     (if panel
       (gdom/replaceNode replacement panel)
-      (gdom/appendChild (gdom/$ "main") replacement))))
+      (gdom/appendChild (gdom/$ "main") replacement))
+    (update-state)))
 
 (defn add-header []
   (let [header (gdom/$ "header")]
@@ -67,8 +81,5 @@
        [:div {:class "header-bottom"}]]))))
 
 (defn ^:export init []
-  (loop []
-    (add-header)
-    (selector/add build-function-view)
-;    (update-state)
-    ))
+  (add-header)
+  (selector/add build-function-view))

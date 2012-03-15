@@ -31,3 +31,11 @@ html body {
     padding-top:10px;
     height:100%;
 }
+
+#source {
+    float:left;
+}
+
+#trace {
+    position:relative;
+}

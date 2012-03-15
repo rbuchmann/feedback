@@ -23,12 +23,9 @@
       (with-open [rdr (LineNumberReader. (InputStreamReader. strm))]
         (dotimes [_ (dec (:line (meta v)))]
           (.readLine rdr))
-        (let [text (StringBuilder.)
-              pbr (proxy [PushbackReader] [rdr]
-                    (read [] (let [i (proxy-super read)]
-                               (.append text (char i))
-                               i)))]
-          (read (PushbackReader. pbr)))))))
+        (-> rdr
+            (clojure.lang.LineNumberingPushbackReader.)
+            (read))))))
 
 (defn feedback-fn [v args]
   (-?> v

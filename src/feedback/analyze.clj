@@ -1,17 +1,17 @@
 (ns feedback.analyze
-  (:require [clojure.walk :as cljwalk]))
+  (:require [clojure.walk :as w]))
 
 (defn with-meta*
   "Like with-meta, but doesn't fail on non IMeta objects"
   [obj m]
   (if (instance? clojure.lang.IMeta obj)
-    (with-meta obj m)
+    (vary-meta obj merge m)
     obj))
 
 (defn walk
   "Like clojure.walk/walk, but preserves metadata"
   [inner outer form]
-  (let [res (cljwalk/walk inner outer form)]
+  (let [res (w/walk inner outer form)]
     (with-meta* res (meta form))))
 
 (defn get-path [form]
