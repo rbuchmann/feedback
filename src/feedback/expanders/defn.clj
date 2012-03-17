@@ -3,7 +3,6 @@
         [feedback.expander :only (macro-expander)]))
 
 (def defn-expander
-  (macro-expander defn [x y & rest]
-    (if (string? y)
-      `(fn ~@(cons x rest))
-      `(fn ~@(list* x y rest)))))
+  (macro-expander defn [x & rest]
+     `(fn ~@(cons x (drop-while #(or (string? %) (map? %))
+                               rest)))))

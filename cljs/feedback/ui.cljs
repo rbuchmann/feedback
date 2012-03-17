@@ -42,6 +42,7 @@
 
 (defn update-state []
   (fm/letrem [feedbacks (watch-feedbacks)]
+             (log "upd")
     (let [source (gdom/$ "source")
           trace  (gdom/$ "trace")
           child  (-> feedbacks
